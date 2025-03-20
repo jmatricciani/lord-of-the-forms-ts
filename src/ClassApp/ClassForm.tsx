@@ -1,62 +1,143 @@
-import { Component } from "react";
+import React, { Component } from "react";
 import { ErrorMessage } from "../ErrorMessage";
+import { ClassPhoneInput } from "./ClassComponents/ClassPhoneInput";
+import { IUserData, PhoneInputState } from "../types";
+import {
+  isCityValid,
+  isEmailValid,
+  isFormValid,
+  isNameValid,
+  isPhoneValid,
+} from "../utils/validations";
+import {
+  cityErrorMessage,
+  emailErrorMessage,
+  firstNameErrorMessage,
+  lastNameErrorMessage,
+  phoneNumberErrorMessage,
+} from "../utils/Constants";
+import { ClassTextField } from "./ClassComponents/ClassTextField";
+import { convertPhoneInputToString } from "../utils/transformations";
 
-const firstNameErrorMessage = "First name must be at least 2 characters long";
-const lastNameErrorMessage = "Last name must be at least 2 characters long";
-const emailErrorMessage = "Email is Invalid";
-const cityErrorMessage = "State is Invalid";
-const phoneNumberErrorMessage = "Invalid Phone Number";
+export class ClassForm extends Component<IUserData> {
+  state = {
+    firstName: "",
+    lastName: "",
+    email: "",
+    city: "",
+    phone: ["", "", "", ""] as PhoneInputState,
+    isSubmitted: false,
+  };
 
-export class ClassForm extends Component {
+  handlePhoneState = (phoneInputState: PhoneInputState) => {
+    this.setState({
+      phone: [...phoneInputState],
+    });
+  };
+
   render() {
     return (
-      <form>
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          this.setState({ isSubmitted: true });
+          if (
+            isFormValid(
+              this.state.firstName,
+              this.state.lastName,
+              this.state.email,
+              this.state.city,
+              this.state.phone
+            )
+          ) {
+            this.props.handleUserData({
+              firstName: this.state.firstName,
+              lastName: this.state.lastName,
+              email: this.state.email,
+              city: this.state.city,
+              phone: convertPhoneInputToString(this.state.phone),
+            });
+            this.setState({
+              firstName: "",
+              lastName: "",
+              email: "",
+              city: "",
+              phone: ["", "", "", ""] as PhoneInputState,
+              isSubmitted: false,
+            });
+          } else {
+            alert("Bad Input");
+          }
+        }}
+      >
         <u>
           <h3>User Information Form</h3>
         </u>
 
         {/* first name input */}
-        <div className="input-wrap">
-          <label>{"First Name"}:</label>
-          <input placeholder="Bilbo" />
-        </div>
-        <ErrorMessage message={firstNameErrorMessage} show={true} />
+        <ClassTextField
+          labelText={"First Name"}
+          placeholder={"Bilbo"}
+          value={this.state.firstName}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+            this.setState({ firstName: event.target.value });
+          }}
+        />
+        <ErrorMessage
+          message={firstNameErrorMessage}
+          show={!isNameValid(this.state.firstName) && this.state.isSubmitted}
+        />
 
         {/* last name input */}
-        <div className="input-wrap">
-          <label>{"Last Name"}:</label>
-          <input placeholder="Baggins" />
-        </div>
-        <ErrorMessage message={lastNameErrorMessage} show={true} />
+        <ClassTextField
+          labelText={"Last Name"}
+          placeholder={"Baggins"}
+          value={this.state.lastName}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+            this.setState({ lastName: event.target.value });
+          }}
+        />
+        <ErrorMessage
+          message={lastNameErrorMessage}
+          show={!isNameValid(this.state.lastName) && this.state.isSubmitted}
+        />
 
         {/* Email Input */}
-        <div className="input-wrap">
-          <label>{"Email"}:</label>
-          <input placeholder="bilbo-baggins@adventurehobbits.net" />
-        </div>
-        <ErrorMessage message={emailErrorMessage} show={true} />
+        <ClassTextField
+          labelText={"Email"}
+          placeholder={"bilbo-baggins@adventurehobbits.net"}
+          value={this.state.email}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+            this.setState({ email: event.target.value });
+          }}
+        />
+        <ErrorMessage
+          message={emailErrorMessage}
+          show={!isEmailValid(this.state.email) && this.state.isSubmitted}
+        />
 
         {/* City Input */}
-        <div className="input-wrap">
-          <label>{"City"}:</label>
-          <input placeholder="Hobbiton" />
-        </div>
-        <ErrorMessage message={cityErrorMessage} show={true} />
+        <ClassTextField
+          labelText={"City"}
+          placeholder={"Hobbiton"}
+          value={this.state.city}
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+            this.setState({ city: event.target.value });
+          }}
+        />
+        <ErrorMessage
+          message={cityErrorMessage}
+          show={!isCityValid(this.state.city) && this.state.isSubmitted}
+        />
 
-        <div className="input-wrap">
-          <label htmlFor="phone">Phone:</label>
-          <div id="phone-input-wrap">
-            <input type="text" id="phone-input-1" placeholder="55" />
-            -
-            <input type="text" id="phone-input-2" placeholder="55" />
-            -
-            <input type="text" id="phone-input-3" placeholder="55" />
-            -
-            <input type="text" id="phone-input-4" placeholder="5" />
-          </div>
-        </div>
-
-        <ErrorMessage message={phoneNumberErrorMessage} show={true} />
+        <ClassPhoneInput
+          phoneInputState={this.state.phone}
+          setPhoneInputState={this.handlePhoneState}
+        />
+        <ErrorMessage
+          message={phoneNumberErrorMessage}
+          show={!isPhoneValid(this.state.phone) && this.state.isSubmitted}
+        />
 
         <input type="submit" value="Submit" />
       </form>
